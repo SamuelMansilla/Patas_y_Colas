@@ -4,16 +4,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.example.patas_y_colas.ui.theme.screens.MainNavigation
+import com.example.patas_y_colas.navigation.MainNavigation
 import com.example.patas_y_colas.ui.theme.Patas_y_ColasTheme
-import com.example.patas_y_colas.ui.theme.screens.PortadaScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -21,13 +13,10 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             Patas_y_ColasTheme {
-                /*  Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                      Greeting(
-                          name = "Android",
-                          modifier = Modifier.padding(innerPadding)
-                      )*/
+                // MainNavigation ahora se encarga de todo.
                 MainNavigation()
             }
         }
     }
 }
+
