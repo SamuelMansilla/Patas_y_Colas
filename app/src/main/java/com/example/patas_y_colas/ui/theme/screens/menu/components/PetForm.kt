@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -111,7 +112,7 @@ fun PetForm(pet: Pet?, onSave: (Pet) -> Unit, onDelete: (Pet) -> Unit) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
                     listOf("Perro", "Gato", "Otro").forEach { option ->
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            RadioButton(selected = speciesOption == option, onClick = { speciesOption = option }, colors = RadioButtonDefaults.colors(selectedColor = PetOrange, unselectedColor = PetTextLight))
+                            RadioButton(selected = speciesOption == option, onClick = { speciesOption = option }, colors = RadioButtonDefaults.colors(selectedColor = PetTerracotta, unselectedColor = PetTextLight))
                             Text(option, color = PetTextDark)
                         }
                     }
@@ -124,9 +125,9 @@ fun PetForm(pet: Pet?, onSave: (Pet) -> Unit, onDelete: (Pet) -> Unit) {
             PetTextField(label = "Edad", value = age, onValueChange = { age = it }, error = ageError, keyboardType = KeyboardType.Number)
             PetTextField(label = "Peso", value = weight, onValueChange = { weight = it }, error = weightError, keyboardType = KeyboardType.Number, suffix = "Kg")
 
-            Button(onClick = { showImageSourceDialog = true }, modifier = Modifier.fillMaxWidth().height(50.dp), shape = CircleShape, colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = PetOrange), elevation = null, border = BorderStroke(1.dp, PetOrange)) { Text("Seleccionar Foto") }
+            Button(onClick = { showImageSourceDialog = true }, modifier = Modifier.fillMaxWidth().height(50.dp), shape = CircleShape, colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = PetOchre), elevation = null, border = BorderStroke(1.dp, PetOchre)) { Text("Seleccionar Foto") }
 
-            Button(onClick = { showVaccineDialog = true }, modifier = Modifier.fillMaxWidth().height(50.dp), shape = CircleShape, colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = PetOrange), elevation = null, border = BorderStroke(1.dp, PetOrange)) { Text("Registro de Vacunas") }
+            Button(onClick = { showVaccineDialog = true }, modifier = Modifier.fillMaxWidth().height(50.dp), shape = CircleShape, colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = PetOchre), elevation = null, border = BorderStroke(1.dp, PetOchre)) { Text("Registro de Vacunas") }
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 if (pet != null) {
@@ -143,7 +144,7 @@ fun PetForm(pet: Pet?, onSave: (Pet) -> Unit, onDelete: (Pet) -> Unit) {
                     },
                     modifier = Modifier.weight(1f).height(50.dp),
                     shape = CircleShape,
-                    colors = ButtonDefaults.buttonColors(containerColor = PetOrange)
+                    colors = ButtonDefaults.buttonColors(containerColor = PetTerracotta)
                 ) {
                     Text(text = "Guardar", fontSize = 16.sp, color = Color.White, fontWeight = FontWeight.Bold)
                 }
@@ -170,7 +171,7 @@ fun VaccineRegistrationDialog(initialVaccines: List<VaccineRecord>, onDismiss: (
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Registro de Vacunas", color = PetTextDark) },
-        containerColor = PetOffWhite,
+        containerColor = PetBackground,
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 LazyColumn(modifier = Modifier.heightIn(max = 300.dp)) {
@@ -186,32 +187,28 @@ fun VaccineRegistrationDialog(initialVaccines: List<VaccineRecord>, onDismiss: (
                         }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH))
                         datePickerDialog.datePicker.minDate = calendar.timeInMillis
 
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                             OutlinedTextField(
                                 value = vaccineName,
                                 onValueChange = { vaccineName = it; vaccines[index] = vaccines[index].copy(vaccineName = it) },
                                 label = { Text("Vacuna") },
                                 modifier = Modifier.weight(1f),
-                                colors = OutlinedTextFieldDefaults.colors(
-                                    focusedTextColor = PetTextDark, // <-- CORRECCIÓN AQUÍ
-                                    unfocusedTextColor = PetTextDark, // <-- CORRECCIÓN AQUÍ
-                                    cursorColor = PetOrange,
-                                    focusedBorderColor = PetOrange,
-                                    unfocusedBorderColor = PetTextLight,
-                                    focusedLabelColor = PetOrange,
-                                    unfocusedLabelColor = PetTextLight
-                                )
+                                colors = OutlinedTextFieldDefaults.colors(cursorColor = PetTerracotta, focusedBorderColor = PetTerracotta, unfocusedBorderColor = PetTextLight)
                             )
                             IconButton(onClick = { datePickerDialog.show() }) { Icon(Icons.Default.CalendarToday, contentDescription = "Fecha", tint = PetTextLight) }
+                            // --- BOTÓN DE ELIMINAR ---
+                            IconButton(onClick = { vaccines.removeAt(index) }) {
+                                Icon(Icons.Default.Delete, contentDescription = "Eliminar Vacuna", tint = PetRed)
+                            }
                         }
                         if (date.isNotEmpty()){ Text(date, color = PetTextLight, modifier = Modifier.padding(start = 16.dp)) }
                     }
                 }
                 Spacer(modifier = Modifier.height(16.dp))
-                Button(onClick = { vaccines.add(VaccineRecord(vaccineName = "", date = "")) }, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = PetYellow)) { Text("Añadir Vacuna", color = PetTextDark) }
+                Button(onClick = { vaccines.add(VaccineRecord(vaccineName = "", date = "")) }, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = PetSand)) { Text("Añadir Vacuna", color = PetTextDark) }
             }
         },
-        confirmButton = { Button(onClick = { onSave(vaccines.toList()) }, colors = ButtonDefaults.buttonColors(containerColor = PetOrange)) { Text("Guardar", color = Color.White) } },
+        confirmButton = { Button(onClick = { onSave(vaccines.toList()) }, colors = ButtonDefaults.buttonColors(containerColor = PetTerracotta)) { Text("Guardar", color = Color.White) } },
         dismissButton = { Button(onClick = onDismiss, colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = PetTextLight)) { Text("Cancelar") } }
     )
 }
@@ -225,11 +222,11 @@ private fun PetTextField(label: String, value: String, onValueChange: (String) -
             keyboardOptions = KeyboardOptions(keyboardType = keyboardType, imeAction = ImeAction.Next),
             trailingIcon = { if(suffix != null) Text(suffix, color = PetTextLight) },
             colors = TextFieldDefaults.colors(
-                focusedContainerColor = PetOffWhite, unfocusedContainerColor = PetOffWhite,
+                focusedContainerColor = PetBackground, unfocusedContainerColor = PetBackground,
                 focusedTextColor = PetTextDark, unfocusedTextColor = PetTextDark,
-                cursorColor = PetOrange,
+                cursorColor = PetTerracotta,
                 focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, disabledIndicatorColor = Color.Transparent, errorIndicatorColor = Color.Transparent,
-                focusedLabelColor = PetOrange, unfocusedLabelColor = PetTextLight, errorLabelColor = PetRed
+                focusedLabelColor = PetTerracotta, unfocusedLabelColor = PetTextLight, errorLabelColor = PetRed
             )
         )
         if (error != null) {

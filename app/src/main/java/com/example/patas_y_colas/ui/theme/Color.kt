@@ -2,16 +2,16 @@ package com.example.patas_y_colas.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// --- Nueva Paleta de Colores ---
-val PetDarkBlue = Color(0xFF264653)
-val PetTeal = Color(0xFF2A9D8F)
-val PetYellow = Color(0xFFE9C46A)
-val PetOrange = Color(0xFFF4A261)
+// --- Nueva Paleta de Colores Naturales ---
+val PetSageGreen = Color(0xFFFFAB44)   // Verde salvia
+val PetSand = Color(0xFFC7B57F)        // Arena
+val PetOchre = Color(0xFFD1A760)        // Ocre
+val PetTerracotta = Color(0xFFD87C6C)  // Terracota
 
 // Colores de Apoyo
-val PetBackground = Color(0xFFFAD9B5) // <-- NUEVO COLOR DE FONDO
-val PetOffWhite = Color(0xFFFCEFDA)   // Color para el interior de las tarjetas
+val PetBackground = Color(0xFFFDE7B8) // Un blanco muy cálido para el fondo
 val PetRed = Color(0xFFE53935)        // Para acciones destructivas
-val PetTextDark = Color(0xFF264653)   // Texto principal oscuro
-val PetTextLight = Color(0xFF8A8A8A)   // Texto secundario/pistas
+val PetTextDark = Color(0xFF424242)   // Texto principal oscuro (un gris oscuro en lugar de negro puro)
+val PetTextLight = Color(0xFF9E9E9E)   // Texto secundario/pistas
+val PetHighlightBlue = Color(0xFF4285F4) // <-- NUEVO COLOR DE RESALTADO
 

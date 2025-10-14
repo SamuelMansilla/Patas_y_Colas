@@ -28,12 +28,17 @@ import com.example.patas_y_colas.model.Pet
 import com.example.patas_y_colas.ui.theme.*
 
 @Composable
-fun HeaderSection(pets: List<Pet>, onPetSelected: (Pet) -> Unit, onAddPetClicked: () -> Unit) {
+fun HeaderSection(
+    pets: List<Pet>,
+    selectedPet: Pet?,
+    onPetSelected: (Pet) -> Unit,
+    onAddPetClicked: () -> Unit
+) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(bottomStart = 50.dp, bottomEnd = 50.dp))
-            .background(PetTeal) // Nuevo color de cabecera
+            .background(PetSageGreen) // Nuevo color de cabecera
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -53,31 +58,46 @@ fun HeaderSection(pets: List<Pet>, onPetSelected: (Pet) -> Unit, onAddPetClicked
                 Icon(imageVector = Icons.Default.Settings, contentDescription = "Ajustes", tint = Color.White.copy(alpha = 0.8f), modifier = Modifier.size(28.dp).clickable { /* TODO */ })
             }
             Text(text = "Gestiona a tus mascotas", style = MaterialTheme.typography.bodyLarge, color = Color.White.copy(alpha = 0.8f), modifier = Modifier.padding(top = 4.dp, bottom = 24.dp))
-            PetSelector(pets = pets, onPetSelected = onPetSelected, onAddPetClicked = onAddPetClicked)
+            PetSelector(
+                pets = pets,
+                selectedPet = selectedPet,
+                onPetSelected = onPetSelected,
+                onAddPetClicked = onAddPetClicked
+            )
         }
     }
 }
 
 @Composable
-fun PetSelector(pets: List<Pet>, onPetSelected: (Pet) -> Unit, onAddPetClicked: () -> Unit) {
+fun PetSelector(
+    pets: List<Pet>,
+    selectedPet: Pet?,
+    onPetSelected: (Pet) -> Unit,
+    onAddPetClicked: () -> Unit
+) {
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(20.dp),
         verticalAlignment = Alignment.CenterVertically,
         contentPadding = PaddingValues(horizontal = 24.dp)
     ) {
-        item { AddPetCircle(onClick = onAddPetClicked) }
-        items(pets) { pet -> PetCircle(pet = pet, onClick = { onPetSelected(pet) }) }
+        item { AddPetCircle(isSelected = selectedPet == null, onClick = onAddPetClicked) }
+        items(pets) { pet -> PetCircle(pet = pet, isSelected = pet == selectedPet, onClick = { onPetSelected(pet) }) }
     }
 }
 
 @Composable
-fun AddPetCircle(onClick: () -> Unit) {
+fun AddPetCircle(
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    val borderColor = if (isSelected) PetHighlightBlue else Color.White.copy(alpha = 0.2f)
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Box(
             modifier = Modifier
                 .size(80.dp)
                 .clip(CircleShape)
                 .background(Color.White.copy(alpha = 0.2f))
+                .border(3.dp, borderColor, CircleShape)
                 .clickable(onClick = onClick),
             contentAlignment = Alignment.Center
         ) {
@@ -89,27 +109,32 @@ fun AddPetCircle(onClick: () -> Unit) {
 }
 
 @Composable
-fun PetCircle(pet: Pet, onClick: () -> Unit) {
+fun PetCircle(
+    pet: Pet,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
     val icon = when (pet.species.lowercase()) {
         "perro" -> Icons.Filled.Pets
         "gato" -> Icons.Filled.Favorite
         else -> Icons.Filled.Star
     }
+    val borderColor = if (isSelected) PetHighlightBlue else Color.White.copy(alpha = 0.5f)
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Box(
             modifier = Modifier
                 .size(80.dp)
                 .clip(CircleShape)
-                .background(PetOffWhite)
-                .border(2.5.dp, Color.White.copy(alpha = 0.5f), CircleShape)
+                .background(PetBackground)
+                .border(3.dp, borderColor, CircleShape)
                 .clickable(onClick = onClick),
             contentAlignment = Alignment.Center
         ) {
             if (pet.imageUri != null) {
                 AsyncImage(model = Uri.parse(pet.imageUri), contentDescription = pet.name, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
             } else {
-                Icon(imageVector = icon, contentDescription = pet.name, modifier = Modifier.size(40.dp), tint = PetYellow)
+                Icon(imageVector = icon, contentDescription = pet.name, modifier = Modifier.size(40.dp), tint = PetOchre)
             }
         }
         Spacer(modifier = Modifier.height(8.dp))
