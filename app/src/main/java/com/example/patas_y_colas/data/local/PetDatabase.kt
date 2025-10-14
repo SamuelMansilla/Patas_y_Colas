@@ -4,9 +4,12 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
 import com.example.patas_y_colas.model.Pet
+import com.example.patas_y_colas.model.VaccineRecord
 
-@Database(entities = [Pet::class], version = 2, exportSchema = false) // <-- CAMBIAR VERSIÓN A 2
+@Database(entities = [Pet::class, VaccineRecord::class], version = 3, exportSchema = false) // <-- CAMBIA A VERSIÓN 3 Y AÑADE VACCINERECORD
+@TypeConverters(Converters::class) // <-- AÑADE ESTA LÍNEA
 abstract class PetDatabase : RoomDatabase() {
 
     abstract fun petDao(): PetDao

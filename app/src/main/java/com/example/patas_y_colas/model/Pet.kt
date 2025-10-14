@@ -12,7 +12,7 @@ data class Pet(
     val breed: String,
     val age: String,
     val weight: String,
-    val vaccines: String,
-    val nextVaccines: String,
-    val imageUri: String? = null
+    val imageUri: String? = null,
+    val vaccinesJson: String? = null // Guardaremos la lista de vacunas como un JSON
 )
+

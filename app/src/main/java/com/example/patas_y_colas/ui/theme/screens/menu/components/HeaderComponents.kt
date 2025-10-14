@@ -33,7 +33,7 @@ fun HeaderSection(pets: List<Pet>, onPetSelected: (Pet) -> Unit, onAddPetClicked
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(bottomStart = 50.dp, bottomEnd = 50.dp))
-            .background(HeaderBlue)
+            .background(PetTeal) // Nuevo color de cabecera
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -49,10 +49,10 @@ fun HeaderSection(pets: List<Pet>, onPetSelected: (Pet) -> Unit, onAddPetClicked
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(text = "Bienvenido", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold, color = TextWhite)
-                Icon(imageVector = Icons.Default.Settings, contentDescription = "Ajustes", tint = TextWhite.copy(alpha = 0.8f), modifier = Modifier.size(28.dp).clickable { /* TODO */ })
+                Text(text = "Bienvenido", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold, color = Color.White)
+                Icon(imageVector = Icons.Default.Settings, contentDescription = "Ajustes", tint = Color.White.copy(alpha = 0.8f), modifier = Modifier.size(28.dp).clickable { /* TODO */ })
             }
-            Text(text = "Gestiona a tus mascotas", style = MaterialTheme.typography.bodyLarge, color = TextWhite.copy(alpha = 0.8f), modifier = Modifier.padding(top = 4.dp, bottom = 24.dp))
+            Text(text = "Gestiona a tus mascotas", style = MaterialTheme.typography.bodyLarge, color = Color.White.copy(alpha = 0.8f), modifier = Modifier.padding(top = 4.dp, bottom = 24.dp))
             PetSelector(pets = pets, onPetSelected = onPetSelected, onAddPetClicked = onAddPetClicked)
         }
     }
@@ -77,14 +77,14 @@ fun AddPetCircle(onClick: () -> Unit) {
             modifier = Modifier
                 .size(80.dp)
                 .clip(CircleShape)
-                .background(Color.White.copy(alpha = 0.15f))
+                .background(Color.White.copy(alpha = 0.2f))
                 .clickable(onClick = onClick),
             contentAlignment = Alignment.Center
         ) {
-            Icon(imageVector = Icons.Default.Add, contentDescription = "Agregar Mascota", modifier = Modifier.size(40.dp), tint = TextWhite)
+            Icon(imageVector = Icons.Default.Add, contentDescription = "Agregar Mascota", modifier = Modifier.size(40.dp), tint = Color.White)
         }
         Spacer(modifier = Modifier.height(8.dp))
-        Text(text = "Agregar", color = TextWhite, fontWeight = FontWeight.SemiBold)
+        Text(text = "Agregar", color = Color.White, fontWeight = FontWeight.SemiBold)
     }
 }
 
@@ -101,7 +101,7 @@ fun PetCircle(pet: Pet, onClick: () -> Unit) {
             modifier = Modifier
                 .size(80.dp)
                 .clip(CircleShape)
-                .background(CardBackground)
+                .background(PetOffWhite)
                 .border(2.5.dp, Color.White.copy(alpha = 0.5f), CircleShape)
                 .clickable(onClick = onClick),
             contentAlignment = Alignment.Center
@@ -109,11 +109,11 @@ fun PetCircle(pet: Pet, onClick: () -> Unit) {
             if (pet.imageUri != null) {
                 AsyncImage(model = Uri.parse(pet.imageUri), contentDescription = pet.name, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
             } else {
-                Icon(imageVector = icon, contentDescription = pet.name, modifier = Modifier.size(40.dp), tint = OrangeAccent)
+                Icon(imageVector = icon, contentDescription = pet.name, modifier = Modifier.size(40.dp), tint = PetYellow)
             }
         }
         Spacer(modifier = Modifier.height(8.dp))
-        Text(text = pet.name, color = TextWhite, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center)
+        Text(text = pet.name, color = Color.White, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center)
     }
 }
 

@@ -11,6 +11,8 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -29,7 +31,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import com.example.patas_y_colas.model.Pet
+import com.example.patas_y_colas.model.VaccineRecord
 import com.example.patas_y_colas.ui.theme.*
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import java.io.File
 import java.io.FileOutputStream
 import java.util.*
@@ -40,8 +45,6 @@ fun PetForm(pet: Pet?, onSave: (Pet) -> Unit, onDelete: (Pet) -> Unit) {
     var breed by remember(pet) { mutableStateOf(pet?.breed ?: "") }
     var age by remember(pet) { mutableStateOf(pet?.age ?: "") }
     var weight by remember(pet) { mutableStateOf(pet?.weight?.filter { it.isDigit() } ?: "") }
-    var vaccines by remember(pet) { mutableStateOf(pet?.vaccines ?: "") }
-    var nextVaccines by remember(pet) { mutableStateOf(pet?.nextVaccines ?: "") }
     var imageUri by remember(pet) { mutableStateOf(pet?.imageUri) }
 
     val initialSpecies = pet?.species
@@ -54,32 +57,32 @@ fun PetForm(pet: Pet?, onSave: (Pet) -> Unit, onDelete: (Pet) -> Unit) {
     var weightError by remember { mutableStateOf<String?>(null) }
     var otherSpeciesError by remember { mutableStateOf<String?>(null) }
 
+    var showVaccineDialog by remember { mutableStateOf(false) }
+    var currentVaccines by remember(pet) {
+        mutableStateOf(
+            pet?.vaccinesJson?.let {
+                try { Gson().fromJson<List<VaccineRecord>>(it, object : TypeToken<List<VaccineRecord>>() {}.type) }
+                catch (e: Exception) { emptyList() }
+            } ?: emptyList()
+        )
+    }
+
     val context = LocalContext.current
     var tempImageUri by remember { mutableStateOf<Uri?>(null) }
 
-    val imagePickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent(),
-        onResult = { uri: Uri? ->
-            uri?.let {
-                val newUri = copyUriToInternalStorage(context, it)
-                imageUri = newUri?.toString()
-            }
+    val imagePickerLauncher = rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri: Uri? ->
+        uri?.let { imageUri = copyUriToInternalStorage(context, it)?.toString() }
+    }
+    val cameraLauncher = rememberLauncherForActivityResult(contract = ActivityResultContracts.TakePicture()) { success ->
+        if (success) { imageUri = tempImageUri?.toString() }
+    }
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestPermission()) { isGranted ->
+        if(isGranted) {
+            val uri = context.createImageUri()
+            tempImageUri = uri
+            cameraLauncher.launch(uri)
         }
-    )
-    val cameraLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.TakePicture(),
-        onResult = { success -> if (success) { imageUri = tempImageUri?.toString() } }
-    )
-    val cameraPermissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission(),
-        onResult = { isGranted ->
-            if(isGranted) {
-                val uri = context.createImageUri()
-                tempImageUri = uri
-                cameraLauncher.launch(uri)
-            }
-        }
-    )
+    }
     var showImageSourceDialog by remember { mutableStateOf(false) }
 
     fun validate(): Boolean {
@@ -92,26 +95,24 @@ fun PetForm(pet: Pet?, onSave: (Pet) -> Unit, onDelete: (Pet) -> Unit) {
     }
 
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = CardBackground.copy(alpha = 0.9f)),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
     ) {
         Column(
             modifier = Modifier.padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text(text = if (pet == null) "Nueva Mascota" else "Editar a ${pet.name}", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, modifier = Modifier.align(Alignment.CenterHorizontally), color = TextWhite)
+            Text(text = if (pet == null) "Nueva Mascota" else "Editar a ${pet.name}", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, modifier = Modifier.align(Alignment.CenterHorizontally), color = PetTextDark)
             PetTextField(label = "Nombre", value = name, onValueChange = { name = it }, error = nameError)
             Column {
-                Text("Especie", color = TextGray, modifier = Modifier.padding(start = 16.dp, bottom = 8.dp))
+                Text("Especie", color = PetTextLight, modifier = Modifier.padding(start = 16.dp, bottom = 8.dp))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
                     listOf("Perro", "Gato", "Otro").forEach { option ->
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            RadioButton(selected = speciesOption == option, onClick = { speciesOption = option }, colors = RadioButtonDefaults.colors(selectedColor = OrangeAccent, unselectedColor = TextGray))
-                            Text(option, color = TextWhite)
+                            RadioButton(selected = speciesOption == option, onClick = { speciesOption = option }, colors = RadioButtonDefaults.colors(selectedColor = PetOrange, unselectedColor = PetTextLight))
+                            Text(option, color = PetTextDark)
                         }
                     }
                 }
@@ -122,67 +123,97 @@ fun PetForm(pet: Pet?, onSave: (Pet) -> Unit, onDelete: (Pet) -> Unit) {
             PetTextField(label = "Raza", value = breed, onValueChange = { breed = it }, error = breedError)
             PetTextField(label = "Edad", value = age, onValueChange = { age = it }, error = ageError, keyboardType = KeyboardType.Number)
             PetTextField(label = "Peso", value = weight, onValueChange = { weight = it }, error = weightError, keyboardType = KeyboardType.Number, suffix = "Kg")
-            PetTextField(label = "Vacunas", value = vaccines, onValueChange = { vaccines = it })
 
-            val mContext = LocalContext.current
-            val mCalendar = Calendar.getInstance()
-            val mDatePickerDialog = DatePickerDialog(mContext, { _: DatePicker, year: Int, month: Int, dayOfMonth: Int -> nextVaccines = "$dayOfMonth/${month + 1}/$year" }, mCalendar.get(Calendar.YEAR), mCalendar.get(Calendar.MONTH), mCalendar.get(Calendar.DAY_OF_MONTH))
-            Box(modifier = Modifier.clickable { mDatePickerDialog.show() }) {
-                OutlinedTextField(
-                    value = nextVaccines,
-                    onValueChange = { },
-                    enabled = false,
-                    label = { Text("Próximas Vacunas") },
-                    trailingIcon = { Icon(Icons.Default.CalendarToday, "Seleccionar fecha", tint = TextGray) },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        disabledTextColor = TextWhite,
-                        disabledBorderColor = TextGray,
-                        disabledLabelColor = TextGray,
-                        disabledTrailingIconColor = TextGray
-                    )
-                )
-            }
+            Button(onClick = { showImageSourceDialog = true }, modifier = Modifier.fillMaxWidth().height(50.dp), shape = CircleShape, colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = PetOrange), elevation = null, border = BorderStroke(1.dp, PetOrange)) { Text("Seleccionar Foto") }
 
-            Button(onClick = { showImageSourceDialog = true }, modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp), shape = CircleShape, colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = OrangeAccent), elevation = null, border = BorderStroke(1.dp, OrangeAccent)) { Text("Seleccionar Foto") }
+            Button(onClick = { showVaccineDialog = true }, modifier = Modifier.fillMaxWidth().height(50.dp), shape = CircleShape, colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = PetOrange), elevation = null, border = BorderStroke(1.dp, PetOrange)) { Text("Registro de Vacunas") }
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 if (pet != null) {
-                    Button(onClick = { onDelete(pet) }, modifier = Modifier
-                        .weight(1f)
-                        .height(50.dp), shape = CircleShape, colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = DestructiveRed), border = BorderStroke(1.dp, DestructiveRed)) { Text(text = "Eliminar") }
+                    Button(onClick = { onDelete(pet) }, modifier = Modifier.weight(1f).height(50.dp), shape = CircleShape, colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = PetRed), border = BorderStroke(1.dp, PetRed)) { Text(text = "Eliminar") }
                 }
                 Button(
                     onClick = {
                         if (validate()) {
                             val finalSpecies = if (speciesOption == "Otro") otherSpecies else speciesOption
-                            val petToSave = Pet(id = pet?.id ?: 0, name = name, species = finalSpecies, breed = breed, age = age, weight = "$weight Kg", vaccines = vaccines, nextVaccines = nextVaccines, imageUri = imageUri)
+                            val vaccinesJson = Gson().toJson(currentVaccines)
+                            val petToSave = Pet(id = pet?.id ?: 0, name = name, species = finalSpecies, breed = breed, age = age, weight = "$weight Kg", imageUri = imageUri, vaccinesJson = vaccinesJson)
                             onSave(petToSave)
                         }
                     },
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(50.dp),
+                    modifier = Modifier.weight(1f).height(50.dp),
                     shape = CircleShape,
-                    colors = ButtonDefaults.buttonColors(containerColor = OrangeAccent)
+                    colors = ButtonDefaults.buttonColors(containerColor = PetOrange)
                 ) {
-                    Text(text = "Guardar", fontSize = 16.sp, color = DarkBackground, fontWeight = FontWeight.Bold)
+                    Text(text = "Guardar", fontSize = 16.sp, color = Color.White, fontWeight = FontWeight.Bold)
                 }
             }
         }
     }
 
-    if(showImageSourceDialog) {
-        AlertDialog(
-            onDismissRequest = { showImageSourceDialog = false },
-            title = { Text("Seleccionar Imagen") },
-            text = { Text("¿Desde dónde quieres obtener la imagen?") },
-            confirmButton = { Button(onClick = { showImageSourceDialog = false; cameraPermissionLauncher.launch(Manifest.permission.CAMERA) }) { Text("Cámara") } },
-            dismissButton = { Button(onClick = { showImageSourceDialog = false; imagePickerLauncher.launch("image/*") }) { Text("Galería") } }
-        )
+    if (showVaccineDialog) {
+        VaccineRegistrationDialog(initialVaccines = currentVaccines, onDismiss = { showVaccineDialog = false }) { updatedVaccines ->
+            currentVaccines = updatedVaccines
+            showVaccineDialog = false
+        }
     }
+
+    if(showImageSourceDialog) {
+        AlertDialog(onDismissRequest = { showImageSourceDialog = false }, title = { Text("Seleccionar Imagen") }, text = { Text("¿Desde dónde quieres obtener la imagen?") }, confirmButton = { Button(onClick = { showImageSourceDialog = false; cameraPermissionLauncher.launch(Manifest.permission.CAMERA) }) { Text("Cámara") } }, dismissButton = { Button(onClick = { showImageSourceDialog = false; imagePickerLauncher.launch("image/*") }) { Text("Galería") } })
+    }
+}
+
+@Composable
+fun VaccineRegistrationDialog(initialVaccines: List<VaccineRecord>, onDismiss: () -> Unit, onSave: (List<VaccineRecord>) -> Unit) {
+    val vaccines = remember { initialVaccines.toMutableStateList() }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Registro de Vacunas", color = PetTextDark) },
+        containerColor = PetOffWhite,
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                LazyColumn(modifier = Modifier.heightIn(max = 300.dp)) {
+                    itemsIndexed(vaccines) { index, vaccine ->
+                        var vaccineName by remember { mutableStateOf(vaccine.vaccineName) }
+                        var date by remember { mutableStateOf(vaccine.date) }
+                        val context = LocalContext.current
+                        val calendar = Calendar.getInstance()
+                        val datePickerDialog = DatePickerDialog(context, { _, year, month, dayOfMonth ->
+                            val newDate = "$dayOfMonth/${month + 1}/$year"
+                            date = newDate
+                            vaccines[index] = vaccines[index].copy(date = newDate)
+                        }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH))
+                        datePickerDialog.datePicker.minDate = calendar.timeInMillis
+
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedTextField(
+                                value = vaccineName,
+                                onValueChange = { vaccineName = it; vaccines[index] = vaccines[index].copy(vaccineName = it) },
+                                label = { Text("Vacuna") },
+                                modifier = Modifier.weight(1f),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedTextColor = PetTextDark, // <-- CORRECCIÓN AQUÍ
+                                    unfocusedTextColor = PetTextDark, // <-- CORRECCIÓN AQUÍ
+                                    cursorColor = PetOrange,
+                                    focusedBorderColor = PetOrange,
+                                    unfocusedBorderColor = PetTextLight,
+                                    focusedLabelColor = PetOrange,
+                                    unfocusedLabelColor = PetTextLight
+                                )
+                            )
+                            IconButton(onClick = { datePickerDialog.show() }) { Icon(Icons.Default.CalendarToday, contentDescription = "Fecha", tint = PetTextLight) }
+                        }
+                        if (date.isNotEmpty()){ Text(date, color = PetTextLight, modifier = Modifier.padding(start = 16.dp)) }
+                    }
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+                Button(onClick = { vaccines.add(VaccineRecord(vaccineName = "", date = "")) }, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = PetYellow)) { Text("Añadir Vacuna", color = PetTextDark) }
+            }
+        },
+        confirmButton = { Button(onClick = { onSave(vaccines.toList()) }, colors = ButtonDefaults.buttonColors(containerColor = PetOrange)) { Text("Guardar", color = Color.White) } },
+        dismissButton = { Button(onClick = onDismiss, colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = PetTextLight)) { Text("Cancelar") } }
+    )
 }
 
 @Composable
@@ -192,16 +223,17 @@ private fun PetTextField(label: String, value: String, onValueChange: (String) -
             value = value, onValueChange = onValueChange, label = { Text(label) }, isError = error != null,
             modifier = Modifier.fillMaxWidth(), singleLine = true, shape = CircleShape,
             keyboardOptions = KeyboardOptions(keyboardType = keyboardType, imeAction = ImeAction.Next),
-            trailingIcon = { if(suffix != null) Text(suffix, color = TextGray) },
+            trailingIcon = { if(suffix != null) Text(suffix, color = PetTextLight) },
             colors = TextFieldDefaults.colors(
-                focusedContainerColor = DarkBackground.copy(alpha = 0.5f), unfocusedContainerColor = DarkBackground.copy(alpha = 0.5f),
-                focusedTextColor = TextWhite, unfocusedTextColor = TextWhite, cursorColor = OrangeAccent,
+                focusedContainerColor = PetOffWhite, unfocusedContainerColor = PetOffWhite,
+                focusedTextColor = PetTextDark, unfocusedTextColor = PetTextDark,
+                cursorColor = PetOrange,
                 focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, disabledIndicatorColor = Color.Transparent, errorIndicatorColor = Color.Transparent,
-                focusedLabelColor = OrangeAccent, unfocusedLabelColor = TextGray, errorLabelColor = DestructiveRed
+                focusedLabelColor = PetOrange, unfocusedLabelColor = PetTextLight, errorLabelColor = PetRed
             )
         )
         if (error != null) {
-            Text(text = error, color = DestructiveRed, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(start = 16.dp, top = 4.dp))
+            Text(text = error, color = PetRed, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(start = 16.dp, top = 4.dp))
         }
     }
 }
@@ -216,18 +248,12 @@ private fun copyUriToInternalStorage(context: Context, sourceUri: Uri): Uri? {
         inputStream.close()
         outputStream.close()
         Uri.fromFile(file)
-    } catch (e: Exception) {
-        e.printStackTrace()
-        null
-    }
+    } catch (e: Exception) { e.printStackTrace(); null }
 }
 
 fun Context.createImageUri(): Uri {
     val file = File(cacheDir, "images/pet_image_${System.currentTimeMillis()}.jpg")
     file.parentFile?.mkdirs()
-    return FileProvider.getUriForFile(
-        Objects.requireNonNull(this),
-        "com.example.patas_y_colas.provider", file
-    )
+    return FileProvider.getUriForFile(Objects.requireNonNull(this), "com.example.patas_y_colas.provider", file)
 }
 

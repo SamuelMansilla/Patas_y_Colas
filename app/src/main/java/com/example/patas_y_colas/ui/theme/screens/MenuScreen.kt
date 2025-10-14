@@ -3,16 +3,17 @@ package com.example.patas_y_colas.ui.screens
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Surface
+import androidx.compose.material3.*
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -20,11 +21,11 @@ import com.example.patas_y_colas.PetApplication
 import com.example.patas_y_colas.model.Pet
 import com.example.patas_y_colas.ui.screens.menu.components.HeaderSection
 import com.example.patas_y_colas.ui.screens.menu.components.PetForm
+import com.example.patas_y_colas.ui.screens.menu.components.ReminderSection
+import com.example.patas_y_colas.ui.theme.*
 import com.example.patas_y_colas.ui.utils.rememberWindowSizeClass
 import com.example.patas_y_colas.viewmodel.MenuViewModel
 import com.example.patas_y_colas.viewmodel.MenuViewModelFactory
-
-private val DarkBackground = Color(0xFF1A1A1A)
 
 @Composable
 fun MenuScreen() {
@@ -44,7 +45,7 @@ fun MenuScreen() {
         }
     }
 
-    Surface(modifier = Modifier.fillMaxSize(), color = DarkBackground) {
+    Surface(modifier = Modifier.fillMaxSize(), color = PetBackground) { // Color de fondo principal
         when (windowSizeClass.widthSizeClass) {
             WindowWidthSizeClass.Compact -> {
                 MenuScreenCompact(
@@ -52,17 +53,10 @@ fun MenuScreen() {
                     selectedPet = selectedPet,
                     isFormVisible = isFormVisible,
                     onPetSelected = { pet ->
-                        if (selectedPet == pet) {
-                            isFormVisible = !isFormVisible
-                        } else {
-                            selectedPet = pet
-                            isFormVisible = true
-                        }
+                        if (selectedPet == pet) isFormVisible = !isFormVisible
+                        else { selectedPet = pet; isFormVisible = true }
                     },
-                    onAddPetClicked = {
-                        selectedPet = null
-                        isFormVisible = true
-                    },
+                    onAddPetClicked = { selectedPet = null; isFormVisible = true },
                     onFormAction = { action ->
                         when(action) {
                             is FormAction.Save -> if (action.pet.id == 0) viewModel.insert(action.pet) else viewModel.update(action.pet)
@@ -110,6 +104,7 @@ fun MenuScreenCompact(
     ) {
         HeaderSection(pets = pets, onPetSelected = onPetSelected, onAddPetClicked = onAddPetClicked)
         Spacer(modifier = Modifier.height(24.dp))
+
         AnimatedVisibility(
             visible = isFormVisible,
             enter = expandVertically(expandFrom = Alignment.Top, animationSpec = tween(500)),
@@ -121,6 +116,15 @@ fun MenuScreenCompact(
                 onDelete = { onFormAction(FormAction.Delete(it)) }
             )
         }
+
+        AnimatedVisibility(
+            visible = !isFormVisible,
+            enter = fadeIn(animationSpec = tween(500)),
+            exit = fadeOut(animationSpec = tween(500))
+        ) {
+            ReminderSection(pets = pets)
+        }
+
         Spacer(modifier = Modifier.height(16.dp))
     }
 }
@@ -146,6 +150,8 @@ fun MenuScreenExpanded(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             HeaderSection(pets = pets, onPetSelected = onPetSelected, onAddPetClicked = onAddPetClicked)
+            Spacer(modifier = Modifier.height(24.dp))
+            ReminderSection(pets = pets)
         }
         Column(
             modifier = Modifier
