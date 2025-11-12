@@ -14,8 +14,6 @@ junitVersion = "1.1.5"
 espressoCore = "3.5.1"
 materialIconsExtended = "1.6.7"
 gson = "2.10.1"
-
-# --- VERSIONES AÑADIDAS QUE FALTABAN ---
 hilt = "2.48"
 hiltNavigationCompose = "1.2.0"
 hiltCompiler = "1.2.0"
@@ -71,7 +69,5 @@ android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
-
-# --- PLUGINS AÑADIDOS QUE FALTABAN ---
-kotlin-kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }
+# Se elimina 'kotlin-kapt'
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }

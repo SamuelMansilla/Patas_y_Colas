@@ -78,7 +78,7 @@ object AppModule {
     @Singleton
     @Provides
     fun providePetDatabase(@ApplicationContext context: Context) =
-        PetDatabase.getDatabase(context)
+        PetDatabase.Companion.getDatabase(context)
 
     @Singleton
     @Provides

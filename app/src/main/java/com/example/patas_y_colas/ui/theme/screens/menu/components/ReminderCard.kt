@@ -16,8 +16,6 @@ import com.example.patas_y_colas.model.Pet
 import com.example.patas_y_colas.model.VaccineRecord
 import com.example.patas_y_colas.ui.theme.PetTextDark
 import com.example.patas_y_colas.ui.theme.PetTextLight
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -33,13 +31,9 @@ fun ReminderSection(pets: List<Pet>) {
         }.time
 
         pets.flatMap { pet ->
-            val vaccineList: List<VaccineRecord> = pet.vaccinesJson?.let { json ->
-                try {
-                    Gson().fromJson(json, object : TypeToken<List<VaccineRecord>>() {}.type)
-                } catch (e: Exception) {
-                    emptyList<VaccineRecord>()
-                }
-            } ?: emptyList()
+            // --- ¡CAMBIO AQUÍ! ---
+            // Usamos 'vaccineRecords' directamente, en lugar del 'vaccinesJson' que no existe.
+            val vaccineList: List<VaccineRecord> = pet.vaccineRecords
 
             vaccineList.filter { vaccine ->
                 if (vaccine.vaccineName.isNotBlank() && vaccine.date.isNotBlank()) {
@@ -96,4 +90,3 @@ fun ReminderCard(petName: String, vaccineName: String, date: String) {
         }
     }
 }
-

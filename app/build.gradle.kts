@@ -1,11 +1,9 @@
-
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.ksp)
+    alias(libs.plugins.ksp) // Plugin de KSP
     alias(libs.plugins.kotlin.compose)
-    id("com.google.dagger.hilt.android")
-    id("kotlin-kapt")// Plugin de Compose añadido
+    alias(libs.plugins.hilt) // Plugin de Hilt (usando alias)
 }
 
 android {
@@ -43,8 +41,6 @@ android {
     buildFeatures {
         compose = true
     }
-    // La sección composeOptions se elimina para que el BOM y el plugin
-    // gestionen la versión del compilador automáticamente.
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -68,7 +64,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
 
-    // Room
+    // Room (usa KSP)
     implementation(libs.androidx.room.runtime)
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.room.ktx)
@@ -82,24 +78,25 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
-    implementation(libs.androidx.material3)
-    implementation("androidx.compose.material3:material3-window-size-class:1.2.1")
-    implementation(libs.androidx.material.icons.extended)
+    // WindowSize (usando alias de TOML)
+    implementation(libs.androidx.material3.windowsize)
+
+    // Coil (Aunque no está en tu TOML, lo dejamos)
     implementation("io.coil-kt:coil-compose:2.6.0")
 
     implementation(libs.gson)
 
-    implementation("com.google.dagger:hilt-android:2.48")
-    kapt("com.google.dagger:hilt-android-compiler:2.48")
-    implementation("androidx.hilt:hilt-navigation-compose:1.0.0")
-    kapt("androidx.hilt:hilt-compiler:1.1.0")
+    // Hilt (usando alias de TOML y KSP)
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.android.compiler) // KSP para Hilt
+    implementation(libs.androidx.hilt.navigation.compose) // Usa 1.2.0 de tu TOML
+    ksp(libs.androidx.hilt.compiler) // KSP para Hilt Compiler
 
-    // Retrofit (Para llamadas a la API)
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
-    implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
+    // Retrofit (usando alias de TOML)
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.converter.gson)
+    implementation(libs.okhttp.logging.interceptor)
 
-    // Jetpack DataStore (Para guardar el Token JWT)
-    implementation("androidx.datastore:datastore-preferences:1.0.0")
+    // DataStore (usando alias de TOML)
+    implementation(libs.androidx.datastore.preferences) // Usa 1.1.1 de tu TOML
 }
-

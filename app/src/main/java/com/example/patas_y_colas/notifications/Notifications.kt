@@ -13,8 +13,6 @@ import androidx.core.app.NotificationCompat
 import com.example.patas_y_colas.R
 import com.example.patas_y_colas.model.Pet
 import com.example.patas_y_colas.model.VaccineRecord
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -41,7 +39,7 @@ class NotificationReceiver : BroadcastReceiver() {
 
 object NotificationScheduler {
 
-    // Nueva función para una notificación de prueba inmediata
+    // (La función de prueba está bien)
     fun sendTestNotification(context: Context, petName: String, vaccineName: String) {
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val notification = NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
@@ -59,9 +57,9 @@ object NotificationScheduler {
 
     fun scheduleNotifications(context: Context, pet: Pet) {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        val gson = Gson()
-        val type = object : TypeToken<List<VaccineRecord>>() {}.type
-        val vaccines: List<VaccineRecord> = pet.vaccinesJson?.let { gson.fromJson(it, type) } ?: emptyList()
+
+        // CORRECCIÓN 1: Usamos la lista 'vaccineRecords' directamente
+        val vaccines: List<VaccineRecord> = pet.vaccineRecords
 
         cancelNotificationsForPet(context, pet) // Cancelamos las viejas antes de programar las nuevas
 
@@ -72,8 +70,7 @@ object NotificationScheduler {
                 if (date != null) {
                     val calendar = Calendar.getInstance()
                     calendar.time = date
-                    // --- CAMBIO AQUÍ: Se programa 1 día antes ---
-                    calendar.add(Calendar.DAY_OF_YEAR, -1)
+                    calendar.add(Calendar.DAY_OF_YEAR, -1) // Se programa 1 día antes
                     calendar.set(Calendar.HOUR_OF_DAY, 10)
                     calendar.set(Calendar.MINUTE, 0)
                     calendar.set(Calendar.SECOND, 0)
@@ -83,6 +80,8 @@ object NotificationScheduler {
                             putExtra("PET_NAME", pet.name)
                             putExtra("VACCINE_NAME", vaccine.vaccineName)
                         }
+
+                        // CORRECCIÓN 2: Arreglado el 'PendingMessa' -> 'PendingIntent'
                         val pendingIntent = PendingIntent.getBroadcast(
                             context,
                             (pet.id + vaccine.id),
@@ -100,12 +99,14 @@ object NotificationScheduler {
 
     fun cancelNotificationsForPet(context: Context, pet: Pet) {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        val gson = Gson()
-        val type = object : TypeToken<List<VaccineRecord>>() {}.type
-        val vaccines: List<VaccineRecord> = pet.vaccinesJson?.let { gson.fromJson(it, type) } ?: emptyList()
+
+        // CORRECCIÓN 1: Usamos la lista 'vaccineRecords' directamente
+        val vaccines: List<VaccineRecord> = pet.vaccineRecords
 
         vaccines.forEach { vaccine ->
             val intent = Intent(context, NotificationReceiver::class.java)
+
+            // CORRECCIÓN 2: Arreglado el 'PendingMessa' -> 'PendingIntent'
             val pendingIntent = PendingIntent.getBroadcast(
                 context,
                 (pet.id + vaccine.id),
@@ -130,4 +131,3 @@ fun createNotificationChannel(application: Application) {
         notificationManager.createNotificationChannel(channel)
     }
 }
-
