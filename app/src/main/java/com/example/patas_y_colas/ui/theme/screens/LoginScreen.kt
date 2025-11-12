@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -18,15 +19,28 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+import com.example.patas_y_colas.R
+import com.example.patas_y_colas.viewmodel.LoginViewModel
 
 @Composable
-fun LoginScreen() {
+fun LoginScreen(
+    navController: NavController,
+    // Hilt inyecta el ViewModel automáticamente
+    viewModel: LoginViewModel = hiltViewModel()
+) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    // Estado para mostrar un mensaje de error
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -63,14 +77,46 @@ fun LoginScreen() {
                 modifier = Modifier.fillMaxWidth()
             )
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Muestra el mensaje de error si no es nulo
+            errorMessage?.let {
+                Text(
+                    text = it,
+                    color = Color.Red,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+            }
 
             Button(
-                onClick = { /* Aquí irá la lógica de login */ },
+                onClick = {
+                    // Limpia el error anterior
+                    errorMessage = null
+
+                    // Llama al ViewModel para iniciar sesión
+                    viewModel.login(
+                        email = email,
+                        pass = password,
+                        onLoginSuccess = {
+                            // Si tiene éxito, navega al menú y borra la pantalla
+                            // de login del historial de navegación.
+                            navController.navigate("menu") {
+                                popUpTo("login") { inclusive = true }
+                            }
+                        },
+                        onLoginError = {
+                            // Si falla, muestra un mensaje de error
+                            errorMessage = "Email o contraseña incorrectos"
+                        }
+                    )
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
-                shape = MaterialTheme.shapes.medium
+                shape = MaterialTheme.shapes.medium,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = colorResource(id = R.color.naranja)
+                )
             ) {
                 Text("Ingresar", fontSize = 18.sp)
             }
@@ -81,5 +127,6 @@ fun LoginScreen() {
 @Preview(showBackground = true)
 @Composable
 fun LoginScreenPreview() {
-    LoginScreen()
+    // Usamos un NavController de mentira para la vista previa
+    LoginScreen(navController = rememberNavController())
 }

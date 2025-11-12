@@ -1,73 +1,49 @@
 package com.example.patas_y_colas.viewmodel
 
-import android.app.Application
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
+// ... (elimina ViewModelProvider.Factory)
 import androidx.lifecycle.viewModelScope
 import com.example.patas_y_colas.model.Pet
-import com.example.patas_y_colas.model.VaccineRecord
-import com.example.patas_y_colas.notifications.NotificationScheduler
 import com.example.patas_y_colas.repository.PetRepository
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class MenuViewModel(
-    private val repository: PetRepository,
-    private val application: Application
+// MODIFICADO: Reescrito para Hilt
+@HiltViewModel
+class MenuViewModel @Inject constructor(
+    private val repository: PetRepository
 ) : ViewModel() {
 
-    val allPets: StateFlow<List<Pet>> = repository.allPets.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = emptyList()
-    )
+    val allPets: Flow<List<Pet>> = repository.allPets
 
-    fun insert(pet: Pet) = viewModelScope.launch {
-        repository.insert(pet)
-        NotificationScheduler.scheduleNotifications(application, pet)
+    init {
+        // Carga inicial de datos desde la API
+        refreshPets()
+    }
 
-        // Enviamos una notificación de prueba para la última vacuna añadida
-        pet.vaccinesJson?.let { json ->
-            val vaccines: List<VaccineRecord> = Gson().fromJson(json, object : TypeToken<List<VaccineRecord>>() {}.type)
-            vaccines.lastOrNull()?.takeIf { it.vaccineName.isNotBlank() }?.let {
-                NotificationScheduler.sendTestNotification(application, pet.name, it.vaccineName)
-            }
+    fun refreshPets() {
+        viewModelScope.launch {
+            repository.refreshPetsFromApi()
         }
     }
 
-    fun update(pet: Pet) = viewModelScope.launch {
-        repository.update(pet)
-        NotificationScheduler.scheduleNotifications(application, pet)
-
-        // Enviamos una notificación de prueba para la última vacuna añadida
-        pet.vaccinesJson?.let { json ->
-            val vaccines: List<VaccineRecord> = Gson().fromJson(json, object : TypeToken<List<VaccineRecord>>() {}.type)
-            vaccines.lastOrNull()?.takeIf { it.vaccineName.isNotBlank() }?.let {
-                NotificationScheduler.sendTestNotification(application, pet.name, it.vaccineName)
-            }
+    fun addPet(pet: Pet) {
+        viewModelScope.launch {
+            repository.insertPet(pet)
         }
     }
 
-    fun delete(pet: Pet) = viewModelScope.launch {
-        NotificationScheduler.cancelNotificationsForPet(application, pet)
-        repository.delete(pet)
+    fun updatePet(pet: Pet) {
+        viewModelScope.launch {
+            repository.updatePet(pet)
+        }
+    }
+
+    fun deletePet(pet: Pet) {
+        viewModelScope.launch {
+            repository.deletePet(pet)
+        }
     }
 }
-
-class MenuViewModelFactory(
-    private val repository: PetRepository,
-    private val application: Application
-) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(MenuViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
-            return MenuViewModel(repository, application) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
-    }
-}
-

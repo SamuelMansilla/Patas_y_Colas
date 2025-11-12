@@ -9,7 +9,10 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import com.example.patas_y_colas.navigation.MainNavigation
 import com.example.patas_y_colas.ui.theme.Patas_y_ColasTheme
+import dagger.hilt.android.AndroidEntryPoint
 
+// AÑADIDO: Esta anotación es necesaria para Hilt
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     // Launcher para pedir el permiso de notificaciones
@@ -38,4 +41,3 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-

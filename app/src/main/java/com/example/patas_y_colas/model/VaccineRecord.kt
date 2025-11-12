@@ -7,7 +7,7 @@ import androidx.room.PrimaryKey
 data class VaccineRecord(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
-    val petId: Int = 0, // Para asociar la vacuna a una mascota
+    val petId: Int? = 0, // Para asociar la vacuna a una mascota
     val vaccineName: String,
     val date: String
 )

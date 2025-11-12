@@ -1,4 +1,4 @@
-package com.example.patas_y_colas.ui.screens
+package com.example.patas_y_colas.ui.theme.screens
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -18,37 +18,34 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.patas_y_colas.PetApplication
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.patas_y_colas.model.Pet
 import com.example.patas_y_colas.model.VaccineRecord
-import com.example.patas_y_colas.ui.screens.menu.components.HeaderSection
-import com.example.patas_y_colas.ui.screens.menu.components.PetForm
+import com.example.patas_y_colas.ui.theme.screens.menu.components.HeaderSection
+import com.example.patas_y_colas.ui.theme.screens.menu.components.PetForm
 import com.example.patas_y_colas.ui.theme.*
-import com.example.patas_y_colas.ui.utils.rememberWindowSizeClass
+import com.example.patas_y_colas.ui.theme.utils.rememberWindowSizeClass
 import com.example.patas_y_colas.viewmodel.MenuViewModel
-import com.example.patas_y_colas.viewmodel.MenuViewModelFactory
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import java.text.SimpleDateFormat
 import java.util.*
 
 @Composable
-fun MenuScreen() {
-    val application = LocalContext.current.applicationContext as PetApplication
-    // --- CORRECCIÓN AQUÍ ---
-    // Ahora pasamos la 'application' al Factory para que pueda crear el ViewModel
-    val viewModel: MenuViewModel = viewModel(factory = MenuViewModelFactory(application.repository, application))
-    val pets by viewModel.allPets.collectAsState()
+fun MenuScreen(
+    // MODIFICADO: Obtenemos el ViewModel de Hilt
+    viewModel: MenuViewModel = hiltViewModel()
+) {
+    // MODIFICADO: Eliminada la creación manual con 'viewModelFactory'
+    // Ahora observamos el Flow del ViewModel
+    val pets by viewModel.allPets.collectAsState(initial = emptyList())
 
     var selectedPet by remember { mutableStateOf<Pet?>(null) }
     var isFormVisible by remember { mutableStateOf(false) }
 
     val windowSizeClass = rememberWindowSizeClass()
 
+    // Lógica para pantallas grandes
     if (windowSizeClass.widthSizeClass != WindowWidthSizeClass.Compact) {
         isFormVisible = true
         if (selectedPet == null && pets.isNotEmpty()) {
@@ -76,9 +73,10 @@ fun MenuScreen() {
                         }
                     },
                     onFormAction = { action ->
-                        when(action) {
-                            is FormAction.Save -> if (action.pet.id == 0) viewModel.insert(action.pet) else viewModel.update(action.pet)
-                            is FormAction.Delete -> viewModel.delete(action.pet)
+                        // MODIFICADO: Llamamos a los métodos correctos del ViewModel
+                        when (action) {
+                            is FormAction.Save -> if (action.pet.id == 0) viewModel.addPet(action.pet) else viewModel.updatePet(action.pet)
+                            is FormAction.Delete -> viewModel.deletePet(action.pet)
                         }
                         isFormVisible = false
                     }
@@ -91,9 +89,10 @@ fun MenuScreen() {
                     onPetSelected = { pet -> selectedPet = pet },
                     onAddPetClicked = { selectedPet = null },
                     onFormAction = { action ->
-                        when(action) {
-                            is FormAction.Save -> if (action.pet.id == 0) viewModel.insert(action.pet) else viewModel.update(action.pet)
-                            is FormAction.Delete -> viewModel.delete(action.pet)
+                        // MODIFICADO: Llamamos a los métodos correctos del ViewModel
+                        when (action) {
+                            is FormAction.Save -> if (action.pet.id == 0) viewModel.addPet(action.pet) else viewModel.updatePet(action.pet)
+                            is FormAction.Delete -> viewModel.deletePet(action.pet)
                         }
                         selectedPet = null
                     }
@@ -214,13 +213,9 @@ private fun ReminderSection(pets: List<Pet>) {
         }.time
 
         pets.flatMap { pet ->
-            val vaccineList: List<VaccineRecord> = pet.vaccinesJson?.let { json ->
-                try {
-                    Gson().fromJson(json, object : TypeToken<List<VaccineRecord>>() {}.type)
-                } catch (e: Exception) {
-                    emptyList<VaccineRecord>()
-                }
-            } ?: emptyList()
+            // ¡CORRECCIÓN IMPORTANTE!
+            // Usamos 'pet.vaccineRecords' (la lista) en lugar del 'pet.vaccinesJson' (el string antiguo).
+            val vaccineList: List<VaccineRecord> = pet.vaccineRecords ?: emptyList()
 
             vaccineList.filter { vaccine ->
                 if (vaccine.vaccineName.isNotBlank() && vaccine.date.isNotBlank()) {
@@ -277,4 +272,3 @@ private fun ReminderCard(petName: String, vaccineName: String, date: String) {
         }
     }
 }
-

@@ -8,7 +8,7 @@ import androidx.room.TypeConverters
 import com.example.patas_y_colas.model.Pet
 import com.example.patas_y_colas.model.VaccineRecord
 
-@Database(entities = [Pet::class, VaccineRecord::class], version = 3, exportSchema = false) // <-- CAMBIA A VERSIÓN 3 Y AÑADE VACCINERECORD
+@Database(entities = [Pet::class, VaccineRecord::class], version = 1, exportSchema = false) // <-- CAMBIA A VERSIÓN 3 Y AÑADE VACCINERECORD
 @TypeConverters(Converters::class) // <-- AÑADE ESTA LÍNEA
 abstract class PetDatabase : RoomDatabase() {
 

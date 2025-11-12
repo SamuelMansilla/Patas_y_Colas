@@ -13,6 +13,6 @@ data class Pet(
     val age: String,
     val weight: String,
     val imageUri: String? = null,
-    val vaccinesJson: String? = null // Guardaremos la lista de vacunas como un JSON
+    val vaccineRecords: List<VaccineRecord> = emptyList()// Guardaremos la lista de vacunas como un JSON
 )
 
