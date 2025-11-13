@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.patas_y_colas.ui.screens.MenuScreen
+import com.example.patas_y_colas.ui.theme.screens.MenuScreen
 import com.example.patas_y_colas.ui.theme.screens.PortadaScreen
 
 @Composable

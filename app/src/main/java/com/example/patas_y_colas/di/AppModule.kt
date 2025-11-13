@@ -21,12 +21,11 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object AppModule {
 
-    // URL para pruebas locales (Emulador de Android)
+    // URL para pruebas locales (no la borres, sirve para volver a probar en emulador si quieres)
     const val BASE_URL_LOCAL = "http://10.0.2.2:8080/"
 
-    // URL de producción (Cuando lo subas a Render)
-    // REEMPLAZA "tu-backend-movil.onrender.com" con tu URL real de Render
-    const val BASE_URL_PROD = "https://tu-backend-movil.onrender.com/"
+    // --- CAMBIO 1: TU URL REAL AQUÍ ---
+    const val BASE_URL_PROD = "https://backendmovil-cz40.onrender.com/"
 
     @Singleton
     @Provides
@@ -37,13 +36,13 @@ object AppModule {
     @Singleton
     @Provides
     fun provideOkHttpClient(tokenManager: TokenManager): OkHttpClient {
+        // (El código del interceptor se queda igual, ¡está perfecto!)
         val loggingInterceptor = HttpLoggingInterceptor()
         loggingInterceptor.level = HttpLoggingInterceptor.Level.BODY
 
         return OkHttpClient.Builder()
             .addInterceptor(loggingInterceptor)
             .addInterceptor { chain ->
-                // Intercepta la llamada y añade el token
                 val token = runBlocking { tokenManager.getToken().first() }
                 val request = chain.request().newBuilder()
                     .also {
@@ -61,8 +60,8 @@ object AppModule {
     @Provides
     fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
         return Retrofit.Builder()
-            // ¡IMPORTANTE! Usa LOCAL para probar, cambia a PROD para producción
-            .baseUrl(BASE_URL_LOCAL)
+            // --- CAMBIO 2: CAMBIA "LOCAL" POR "PROD" AQUÍ ---
+            .baseUrl(BASE_URL_PROD)
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
@@ -74,7 +73,7 @@ object AppModule {
         return retrofit.create(ApiService::class.java)
     }
 
-    // --- Proveedores de Room (los que ya tenías) ---
+    // (El resto de los providers de Room se quedan igual)
     @Singleton
     @Provides
     fun providePetDatabase(@ApplicationContext context: Context) =
